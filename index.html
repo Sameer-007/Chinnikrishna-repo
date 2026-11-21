@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Morning News — Real-Time Telugu News & Entertainment Portal</title>
+
+  <!-- iOS Progressive Web App (PWA) & Native Home Screen App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Morning News" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0B2239" />
+  <link id="apple-touch-icon-link" rel="apple-touch-icon" href="" />
+  <link id="pwa-manifest-link" rel="manifest" href="" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans + Noto Sans Telugu + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Telugu:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Noto Sans Telugu"', 'sans-serif'],
+            telugu: ['"Noto Sans Telugu"', '"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              red: '#D32F2F',
+              darkRed: '#9A0007',
+              amber: '#F59E0B',
+              ivory: '#FAF8F5',
+              card: '#FFFFFF',
+              ink: '#18181B',
+              muted: '#52525B',
+            },
+          },
+          animation: {
+            'slide-in': 'slideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'pulse-dot': 'pulseDot 2s infinite',
+            marquee: 'marquee 32s linear infinite',
+          },
+          keyframes: {
+            slideIn: {
+              '0%': { opacity: '0', transform: 'translateY(-16px) scale(0.98)' },
+              '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+            },
+            pulseDot: {
+              '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+              '50%': { opacity: '0.4', transform: 'scale(1.35)' },
+            },
+            marquee: {
+              '0%': { transform: 'translateX(0%)' },
+              '100%': { transform: 'translateX(-50%)' },
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #FAF8F5;
+      color: #18181B;
+      font-family: 'Plus Jakarta Sans', 'Noto Sans Telugu', sans-serif;
+    }
+
+    /* Hide scrollbars cleanly for category bar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Subtle editorial card hover */
+    .news-card {
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+    .news-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -8px rgba(24, 24, 27, 0.08);
+      border-color: #E4E4E7;
+    }
+
+    /* Pause ticker on hover */
+    .ticker-wrap:hover .animate-marquee {
+      animation-play-state: paused;
+    }
+
+    .safe-top {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-red-100 selection:text-red-900">
+
+  <!-- ==================== TOP UTILITY BAR ==================== -->
+  <div class="bg-[#0B2239] text-zinc-200 text-xs border-b border-white/10 safe-top">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 truncate">
+        <span class="inline-flex items-center gap-1.5 text-amber-400 font-bold">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse-dot"></span>
+          LIVE TELUGU NEWS PORTAL
+        </span>
+        <span class="hidden sm:inline text-white/20">|</span>
+        <span id="live-date" class="hidden sm:inline text-zinc-300">Saturday, Nov 21, 2026 • Hyderabad, IN</span>
+        <span class="hidden md:inline text-white/20">|</span>
+        <span class="hidden md:inline text-zinc-300">Tollywood, AP &amp; Telangana Breaking Updates</span>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <!-- Install on iPhone PWA Button -->
+        <button
+          onclick="openIosInstallModal()"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-[#0B2239] text-[11px] font-black transition cursor-pointer shadow-2xs"
+        >
+          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+          <span>Install iOS App</span>
+        </button>
+
+        <!-- Language Switcher -->
+        <div class="flex items-center bg-[#071626] border border-white/15 rounded-lg p-0.5 text-[11px] font-semibold">
+          <button
+            onclick="setLanguage('bilingual')"
+            id="lang-bilingual"
+            class="px-2 py-0.5 rounded-md bg-brand-red text-white transition"
+          >
+            తెలుగు + EN
+          </button>
+          <button
+            onclick="setLanguage('te')"
+            id="lang-te"
+            class="px-2 py-0.5 rounded-md text-zinc-300 hover:text-white transition"
+          >
+            తెలుగు
+          </button>
+          <button
+            onclick="setLanguage('en')"
+            id="lang-en"
+            class="px-2 py-0.5 rounded-md text-zinc-300 hover:text-white transition"
+          >
+            English
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN EDITORIAL MASTHEAD & LOGO ==================== -->
+  <header id="main-masthead" class="bg-white border-b border-zinc-200 transition-all duration-300">
+    <div id="masthead-top-row" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 transition-all duration-300">
+      <div class="flex items-center justify-between gap-4">
+        <!-- Custom MORNING NEWS Rooster Mascot & Sunrise Brand Logo -->
+        <a href="#" onclick="resetFilters(); return false;" class="flex items-center gap-3 group shrink-0" aria-label="Morning News Home">
+          <div class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-b from-amber-50 via-white to-red-50 border border-red-200/80 flex items-center justify-center shadow-md shadow-red-600/10 group-hover:scale-[1.04] transition shrink-0 overflow-hidden">
+            <svg viewBox="0 0 120 120" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="combRed" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#FF2E2E"/>
+                  <stop offset="100%" stop-color="#B90E14"/>
+                </linearGradient>
+                <linearGradient id="sunGold" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#FFE047"/>
+                  <stop offset="100%" stop-color="#F97316"/>
+                </linearGradient>
+                <linearGradient id="bannerRed" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#EF1D24"/>
+                  <stop offset="100%" stop-color="#9E0B10"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Tail Feathers (Left) -->
+              <path d="M35 66C18 62 12 49 16 37C23 44 31 47 40 49" fill="#F4F4F5" stroke="#D4D4D8" stroke-width="1.5"/>
+              <path d="M33 74C15 73 10 61 14 50C21 55 29 58 38 60" fill="#FAFAFA" stroke="#D4D4D8" stroke-width="1.5"/>
+
+              <!-- Golden Sunrise Behind Left Shoulder -->
+              <circle cx="34" cy="70" r="13" fill="url(#sunGold)"/>
+              <g stroke="#F59E0B" stroke-width="2.4" stroke-linecap="round">
+                <line x1="34" y1="50" x2="34" y2="54"/>
+                <line x1="21" y1="55" x2="24" y2="58"/>
+                <line x1="47" y1="55" x2="44" y2="58"/>
+                <line x1="16" y1="67" x2="20" y2="67"/>
+              </g>
+
+              <!-- White Rooster Neck & Head -->
+              <path d="M44 82C44 64 49 38 67 35C83 33 91 47 89 65C88 75 84 82 84 84H44Z" fill="#FFFFFF" stroke="#E4E4E7" stroke-width="1.5"/>
+
+              <!-- Red Rooster Comb (Top Plumes) -->
+              <path d="M51 39C44 33 44 23 53 22C49 14 57 7 67 12C69 5 81 5 84 15C93 13 98 22 92 31C96 36 91 44 84 42C79 34 65 32 51 39Z" fill="url(#combRed)"/>
+
+              <!-- Expressive Eyes -->
+              <ellipse cx="66" cy="51" rx="5.5" ry="7" fill="#FFFFFF" stroke="#27272A" stroke-width="1.3"/>
+              <circle cx="67.5" cy="51.5" r="3.6" fill="#451A03"/>
+              <circle cx="68.5" cy="50" r="1.3" fill="#FFFFFF"/>
+
+              <ellipse cx="80" cy="52" rx="4.8" ry="6.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.3"/>
+              <circle cx="79" cy="52.5" r="3.2" fill="#451A03"/>
+              <circle cx="80" cy="51" r="1.1" fill="#FFFFFF"/>
+
+              <!-- Eyebrows -->
+              <path d="M59 43C63 40 68 41 71 43" stroke="#27272A" stroke-width="2" stroke-linecap="round"/>
+              <path d="M76 44C79 42 83 42 85 44" stroke="#27272A" stroke-width="2" stroke-linecap="round"/>
+
+              <!-- Red Wattle -->
+              <path d="M67 63C63 68 63 77 69 78C73 79 75 74 75 74C75 74 77 79 81 78C86 77 86 68 82 63" fill="url(#combRed)"/>
+
+              <!-- Golden Open Beak -->
+              <path d="M68 58C73 54 81 55 85 60C80 63 73 63 68 58Z" fill="#FACC15" stroke="#D97706" stroke-width="1"/>
+              <path d="M70 60C74 66 80 66 83 60C79 61 74 61 70 60Z" fill="#EA580C"/>
+
+              <!-- Crowing Sound Rays (Right) -->
+              <polygon points="94,48 108,40 105,46" fill="#FACC15" stroke="#F59E0B" stroke-width="1"/>
+              <polygon points="95,55 111,54 109,59" fill="#FACC15" stroke="#F59E0B" stroke-width="1"/>
+              <polygon points="93,62 106,68 102,72" fill="#FACC15" stroke="#F59E0B" stroke-width="1"/>
+
+              <!-- Bottom Red Banner Pill ("Morning NEWS") -->
+              <rect x="14" y="78" width="92" height="22" rx="9" fill="url(#bannerRed)" stroke="#FFFFFF" stroke-width="2"/>
+              <text x="60" y="92.5" text-anchor="middle" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-weight="900" font-style="italic" font-size="14.5" letter-spacing="-0.3">Morning</text>
+              <path d="M24 102Q60 98 96 102" stroke="#FACC15" stroke-width="2.5" stroke-linecap="round"/>
+              <rect x="33" y="103" width="54" height="13" rx="5" fill="#B90E14" stroke="#FFFFFF" stroke-width="1.2"/>
+              <text x="60" y="112.5" text-anchor="middle" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-weight="900" font-style="italic" font-size="9.5" letter-spacing="1.2">NEWS</text>
+            </svg>
+          </div>
+
+          <!-- Bold Stacked Brand Typography Matching the Rooster Emblem -->
+          <div class="leading-none">
+            <div class="flex items-center gap-1.5">
+              <span class="text-2xl sm:text-[29px] font-black italic tracking-tight text-[#D91B24] drop-shadow-2xs leading-[0.95]">
+                Morning
+              </span>
+              <span class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded bg-amber-400 text-[#0B2239] text-[10px] font-black uppercase tracking-wider">
+                LIVE
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="px-2 py-0.5 rounded-md bg-[#B90E14] text-white text-xs sm:text-sm font-black italic tracking-widest uppercase shadow-2xs">
+                NEWS
+              </span>
+              <span class="text-[11px] font-extrabold text-[#0B2239] tracking-wide">
+                తెలుగు • 24x7
+              </span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Saved Bookmarks & Refresh Action -->
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            onclick="toggleBookmarksView()"
+            id="bookmarks-btn"
+            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-[#0B2239] bg-zinc-100 hover:bg-zinc-200/80 transition cursor-pointer"
+          >
+            <i data-lucide="bookmark" class="w-4 h-4 text-[#E11D25]"></i>
+            <span class="hidden sm:inline">Saved</span>
+            <span id="bookmark-count" class="px-1.5 py-0.2 text-[11px] rounded-full bg-white text-[#0B2239] border border-zinc-200">0</span>
+          </button>
+
+          <button
+            id="sync-now-btn"
+            onclick="fetchLiveFeeds(true)"
+            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#E11D25] hover:bg-[#B9141B] shadow-xs transition cursor-pointer"
+            title="Refresh Live Feeds"
+          >
+            <i id="sync-icon" data-lucide="refresh-cw" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Refresh</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sticky Navy Blue Editorial Category Bar (Logo merges here on scroll) -->
+  <div id="sticky-nav-bar" class="sticky top-0 z-40 bg-[#0B2239] text-white border-b border-[#143556] shadow-md transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-2 py-1.5">
+        <!-- Compact Docked Logo (Reveals smoothly when scrolled down) -->
+        <a
+          id="sticky-merged-logo"
+          href="#"
+          onclick="resetFilters(); return false;"
+          aria-label="Morning News Home"
+          class="flex items-center gap-2 overflow-hidden transition-all duration-300 max-w-0 opacity-0 -translate-x-2 pointer-events-none shrink-0"
+        >
+          <div class="w-8 h-8 rounded-xl bg-white p-0.5 flex items-center justify-center shadow-xs shrink-0">
+            <svg viewBox="0 0 120 120" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="34" cy="70" r="13" fill="#F59E0B"/>
+              <path d="M44 82C44 64 49 38 67 35C83 33 91 47 89 65C88 75 84 82 84 84H44Z" fill="#FFFFFF" stroke="#E4E4E7" stroke-width="2"/>
+              <path d="M51 39C44 33 44 23 53 22C49 14 57 7 67 12C69 5 81 5 84 15C93 13 98 22 92 31C96 36 91 44 84 42C79 34 65 32 51 39Z" fill="#E11D25"/>
+              <circle cx="67.5" cy="51.5" r="4" fill="#451A03"/>
+              <circle cx="79" cy="52.5" r="3.5" fill="#451A03"/>
+              <path d="M68 58C73 54 81 55 85 60C80 63 73 63 68 58Z" fill="#FACC15"/>
+              <path d="M67 63C63 68 63 77 69 78C73 79 75 74 75 74C75 74 77 79 81 78C86 77 86 68 82 63" fill="#E11D25"/>
+              <rect x="14" y="78" width="92" height="24" rx="10" fill="#E11D25"/>
+              <text x="60" y="94" text-anchor="middle" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-weight="900" font-style="italic" font-size="15">Morning</text>
+            </svg>
+          </div>
+          <div class="leading-none pr-2 border-r border-white/15">
+            <span class="block text-sm font-black italic tracking-tight text-white">Morning</span>
+            <span class="block text-[9px] font-black italic tracking-widest text-amber-400 uppercase">NEWS</span>
+          </div>
+        </a>
+
+        <!-- Category Tabs Line (Top Stories, Tollywood, Politics, etc.) -->
+        <nav class="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1" id="category-tabs">
+          <!-- Populated dynamically via JS -->
+        </nav>
+
+        <!-- Compact Quick Refresh when scrolled -->
+        <button
+          id="sticky-refresh-btn"
+          onclick="fetchLiveFeeds(true)"
+          title="Refresh Live Feeds"
+          class="hidden sm:inline-flex items-center justify-center p-1.5 rounded-lg bg-white/10 hover:bg-[#E11D25] text-white transition-all duration-300 opacity-0 pointer-events-none shrink-0 cursor-pointer"
+        >
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== BREAKING NEWS TICKER (BELOW TOP STORIES BAR) ==================== -->
+  <div class="bg-[#E11D25] text-white border-b border-red-800 overflow-hidden shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-8 flex items-center gap-3">
+      <span class="shrink-0 inline-flex items-center gap-1.5 bg-[#0B2239] text-amber-300 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+        BREAKING
+      </span>
+      <div class="ticker-wrap flex-1 overflow-hidden relative">
+        <div id="breaking-ticker-track" class="animate-marquee whitespace-nowrap inline-flex items-center gap-8 text-xs font-bold">
+          <span>• Welcome to Morning News — Live updates from 44 Telugu &amp; English portals</span>
+          <span>• Tollywood, AP &amp; Telangana Politics, OTT Releases &amp; Sports in Telugu + English</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN CONTENT AREA ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+
+    <!-- READER LIVE EDITION STATUS BAR -->
+    <section id="portal-grid-wrapper">
+    <section class="mb-5 bg-white border border-zinc-200/90 rounded-2xl px-4 py-2.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div class="flex items-center gap-2.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+        <p class="text-xs sm:text-sm font-bold text-[#0B2239]">
+          Morning News Live Edition
+          <span id="live-feed-status" class="font-normal text-zinc-500 ml-1">• Pulling verified headlines &amp; direct article links from Telugu news feeds.</span>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3 shrink-0 text-xs">
+        <span id="last-synced-text" class="font-semibold text-zinc-500">Connecting to live RSS...</span>
+        <label class="inline-flex items-center gap-1.5 font-semibold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-lg cursor-pointer select-none">
+          <input type="checkbox" id="auto-poll-toggle" checked onchange="toggleAutoPoll(this.checked)" class="accent-[#E11D25] w-3.5 h-3.5 rounded cursor-pointer" />
+          <span>Auto-Update Feed</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- NEW STORIES ARRIVED BANNER (Google News style pill) -->
+    <div id="new-stories-toast" class="hidden mb-5 flex justify-center">
+      <button
+        onclick="acknowledgeNewStories()"
+        class="inline-flex items-center gap-2 bg-[#0B2239] hover:bg-[#133353] text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-full shadow-lg border border-amber-400/50 transition cursor-pointer"
+      >
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+        <span id="new-stories-toast-text">New story arrived</span>
+        <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-amber-400"></i>
+      </button>
+    </div>
+
+    <!-- ==================== TEATIME / MORNING NEWS TOP EDITORIAL GRID ==================== -->
+    <section id="editorial-top-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-7 items-stretch">
+      <!-- Featured Hero Story Container -->
+      <div id="hero-story-container" class="lg:col-span-7 flex"></div>
+
+      <!-- Right-Side "Top Stories" Editorial Stack -->
+      <div class="lg:col-span-5 bg-white border border-zinc-200/90 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between pb-2.5 mb-3 border-b-2 border-[#0B2239]">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-5 bg-[#E11D25] rounded-xs"></span>
+              <h3 class="text-sm sm:text-base font-black uppercase tracking-wide text-[#0B2239]">Top Stories • ముఖ్య వార్తలు</h3>
+            </div>
+            <span class="text-[11px] font-bold text-[#E11D25] bg-red-50 px-2 py-0.5 rounded">LIVE</span>
+          </div>
+          <div id="top-stories-stack" class="divide-y divide-zinc-100">
+            <!-- Populated dynamically with thumbnail + headline compact rows -->
+          </div>
+        </div>
+        <div class="pt-3 mt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
+          <span>Updated continuously from live feeds</span>
+          <button onclick="fetchLiveFeeds(true)" class="font-bold text-[#0B2239] hover:text-[#E11D25] transition cursor-pointer">
+            Refresh Top Stories →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN GRID: LATEST AGGREGATED STREAM + SIDEBAR -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT / MAIN FEED COLUMN (8 cols) -->
+      <div class="lg:col-span-8 space-y-6">
+
+        <!-- Feed Header & Source Filter Pills -->
+        <div class="bg-white border border-zinc-200/90 rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-l-4 border-l-[#E11D25]">
+          <div class="flex items-center gap-2">
+            <h3 id="feed-heading" class="text-base sm:text-lg font-black uppercase tracking-tight text-[#0B2239]">Latest News Stream</h3>
+            <span id="story-count-badge" class="text-xs font-extrabold px-2 py-0.5 rounded-full bg-[#0B2239] text-white">0</span>
+          </div>
+
+          <!-- Quick Source Filter -->
+          <div class="flex items-center gap-2">
+            <label for="source-filter" class="text-xs font-bold text-zinc-500">Channel:</label>
+            <select
+              id="source-filter"
+              onchange="handleSourceFilter(this.value)"
+              class="text-xs font-bold bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-1.5 text-[#0B2239] outline-none focus:border-[#E11D25] max-w-[210px]"
+            >
+              <option value="ALL">All Sources (44)</option>
+              <option value="Morning News">Morning News</option>
+              <option value="Eenadu">Eenadu</option>
+              <option value="Sakshi">Sakshi</option>
+              <option value="TV9 Telugu">TV9 Telugu</option>
+              <option value="NTV Telugu">NTV Telugu</option>
+              <option value="TV5 News">TV5 News</option>
+              <option value="Andhra Jyothy">Andhra Jyothy</option>
+              <option value="V6 Velugu">V6 Velugu</option>
+              <option value="10TV">10TV</option>
+              <option value="HMTV Live">HMTV Live</option>
+              <option value="Namasthe Telangana">Namasthe Telangana</option>
+              <option value="ETV Bharat">ETV Bharat</option>
+              <option value="Zee News Telugu">Zee News Telugu</option>
+              <option value="News18">News18</option>
+              <option value="ABP Desam">ABP Desam</option>
+              <option value="Prabha News">Prabha News</option>
+              <option value="Vaartha">Vaartha</option>
+              <option value="Prajasakti">Prajasakti</option>
+              <option value="Nava Telangana">Nava Telangana</option>
+              <option value="Mana Telangana">Mana Telangana</option>
+              <option value="Suryaa">Suryaa</option>
+              <option value="Visalaandhra">Visalaandhra</option>
+              <option value="Andhra Bhoomi">Andhra Bhoomi</option>
+              <option value="Telangana Today">Telangana Today</option>
+              <option value="The Hans India">The Hans India</option>
+              <option value="NewsMeter">NewsMeter</option>
+              <option value="BBC Telugu">BBC Telugu</option>
+              <option value="Samayam Telugu">Samayam Telugu</option>
+              <option value="Oneindia Telugu">Oneindia Telugu</option>
+              <option value="Asianet News Telugu">Asianet News Telugu</option>
+              <option value="AP7AM">AP7AM</option>
+              <option value="Telugu360">Telugu360</option>
+              <option value="GreatAndhra">GreatAndhra</option>
+              <option value="Tupaki">Tupaki</option>
+              <option value="Gulte">Gulte</option>
+              <option value="123Telugu">123Telugu</option>
+              <option value="Webdunia Telugu">Webdunia Telugu</option>
+              <option value="TeluguOne">TeluguOne</option>
+              <option value="TeluguPost">TeluguPost</option>
+              <option value="Aadhan">Aadhan</option>
+              <option value="Filmibeat Telugu">Filmibeat Telugu</option>
+              <option value="Cinejosh">Cinejosh</option>
+              <option value="Filmy Focus">Filmy Focus</option>
+              <option value="Aadab Hyderabad">Aadab Hyderabad</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- News Cards Grid -->
+        <div id="news-feed-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Category Section Blocks -->
+        <div id="category-showcase-sections" class="space-y-6 pt-2">
+          <!-- Populated dynamically when viewing All Stories -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden bg-white border border-zinc-200 rounded-2xl p-10 text-center">
+          <div class="w-12 h-12 rounded-2xl bg-zinc-100 text-zinc-400 flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="newspaper" class="w-6 h-6"></i>
+          </div>
+          <h4 class="text-base font-bold text-[#0B2239]">No matching stories found</h4>
+          <p class="text-xs text-zinc-500 mt-1 max-w-md mx-auto">Try clearing your search query, switching categories, or refreshing the feed for new updates.</p>
+          <button onclick="resetFilters()" class="mt-4 px-4 py-2 rounded-xl bg-[#E11D25] text-white text-xs font-bold hover:bg-[#B9141B] transition cursor-pointer">
+            Reset Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDEBAR (4 cols) -->
+      <aside class="lg:col-span-4 space-y-6">
+
+        <!-- Live Channel Pulse Card -->
+        <div class="bg-white border border-zinc-200/90 rounded-2xl p-4 sm:p-5 shadow-xs">
+          <div class="flex items-center justify-between pb-2.5 mb-3.5 border-b-2 border-[#0B2239]">
+            <h3 class="text-sm font-black uppercase tracking-wider text-[#0B2239] flex items-center gap-2">
+              <i data-lucide="radio" class="w-4 h-4 text-[#E11D25]"></i>
+              News Channels &amp; Portals
+            </h3>
+            <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">44 Sources</span>
+          </div>
+          <div class="mb-2.5">
+            <input
+              type="text"
+              oninput="filterChannelSidebar(this.value)"
+              placeholder="Filter 44 channels..."
+              class="w-full px-3 py-1.5 text-xs bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:border-[#0B2239]"
+            />
+          </div>
+          <div id="channel-list" class="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Trending Tollywood & Buzz Box -->
+        <div class="bg-white border border-zinc-200/90 rounded-2xl p-4 sm:p-5 shadow-xs">
+          <div class="flex items-center justify-between pb-2.5 mb-3.5 border-b-2 border-[#E11D25]">
+            <h3 class="text-sm font-black uppercase tracking-wider text-[#0B2239] flex items-center gap-2">
+              <i data-lucide="trending-up" class="w-4 h-4 text-[#E11D25]"></i>
+              Trending in Telugu States
+            </h3>
+          </div>
+          <div id="trending-list" class="divide-y divide-zinc-100">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Reader Daily Digest Card -->
+        <div class="bg-gradient-to-br from-[#0B2239] via-[#0B2239] to-[#7F1117] text-white rounded-2xl p-5 shadow-md border border-[#173A5E]">
+          <div class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-amber-400/20 text-amber-300 border border-amber-400/30 mb-3">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            Morning Briefing
+          </div>
+          <h3 class="text-base font-extrabold leading-snug">
+            All Your Favorite Telugu News Portals in One Place
+          </h3>
+          <p class="text-xs text-zinc-200 mt-1.5 leading-relaxed">
+            Read Tollywood exclusives, AP &amp; Telangana political updates, OTT reviews, and breaking headlines in Telugu or English—seamlessly inside one clean reader portal.
+          </p>
+          <button
+            onclick="selectCategory('tollywood')"
+            class="mt-4 w-full py-2.5 px-4 rounded-xl bg-white text-[#0B2239] hover:bg-amber-50 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+          >
+            <i data-lucide="film" class="w-4 h-4 text-[#E11D25]"></i>
+            <span>Explore Tollywood Exclusives</span>
+          </button>
+        </div>
+
+      </aside>
+    </div>
+    </section>
+  </main>
+
+  <!-- ==================== iOS APP INSTALLATION MODAL (ADD TO HOME SCREEN) ==================== -->
+  <div id="ios-install-modal" class="fixed inset-0 z-50 hidden bg-zinc-950/75 backdrop-blur-xs overflow-y-auto p-3 sm:p-6">
+    <div class="min-h-full flex items-center justify-center">
+      <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden animate-slide-in">
+        <div class="px-5 py-4 bg-[#0B2239] text-white flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-[#E11D25] flex items-center justify-center font-black italic text-sm">MN</span>
+            <div>
+              <h3 class="text-sm font-black">Install Morning News on iPhone</h3>
+              <p class="text-[11px] text-zinc-300">No App Store required • Full-screen iOS App</p>
+            </div>
+          </div>
+          <button onclick="closeIosInstallModal()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="p-5 space-y-4 text-xs sm:text-sm text-zinc-700">
+          <div id="ios-browser-warning" class="hidden p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+            <strong>Tip:</strong> On iPhone/iPad, open this link in <strong>Apple Safari</strong> to see the <strong>Add to Home Screen</strong> option.
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-zinc-50 border border-zinc-200/80">
+              <span class="w-6 h-6 rounded-full bg-[#0B2239] text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
+              <div>
+                <p class="font-extrabold text-[#0B2239]">Open in Safari on your iPhone</p>
+                <p class="text-xs text-zinc-500 mt-0.5">Copy the URL below and open it in Safari on your phone.</p>
+                <div class="mt-2 flex items-center gap-1.5">
+                  <input id="share-app-url" type="text" readonly class="w-full px-2.5 py-1.5 text-[11px] font-mono bg-white border border-zinc-200 rounded-lg text-zinc-600" />
+                  <button onclick="copyAppUrl()" class="px-2.5 py-1.5 rounded-lg bg-[#E11D25] text-white text-[11px] font-bold shrink-0 cursor-pointer">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-zinc-50 border border-zinc-200/80">
+              <span class="w-6 h-6 rounded-full bg-[#0B2239] text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
+              <div>
+                <p class="font-extrabold text-[#0B2239]">Tap the Safari Share Button <span class="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-mono text-xs">↑</span></p>
+                <p class="text-xs text-zinc-500 mt-0.5">Located at the bottom toolbar in Safari (square with an upward arrow).</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-zinc-50 border border-zinc-200/80">
+              <span class="w-6 h-6 rounded-full bg-[#E11D25] text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
+              <div>
+                <p class="font-extrabold text-[#0B2239]">Scroll down &amp; tap "Add to Home Screen"</p>
+                <p class="text-xs text-zinc-500 mt-0.5">Tap <strong>Add</strong> in the top-right corner. The <strong>Morning News</strong> rooster app icon will appear on your iPhone Home Screen and launch full-screen like Way2News!</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onclick="closeIosInstallModal()"
+            class="w-full py-2.5 rounded-xl bg-[#0B2239] hover:bg-[#133353] text-white text-xs font-extrabold transition cursor-pointer"
+          >
+            Got It, Start Reading
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bg-[#0B2239] text-zinc-300 border-t border-[#153657] mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-white p-0.5 flex items-center justify-center shadow-sm shrink-0">
+          <svg viewBox="0 0 120 120" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="34" cy="70" r="13" fill="#F59E0B"/>
+            <path d="M44 82C44 64 49 38 67 35C83 33 91 47 89 65C88 75 84 82 84 84H44Z" fill="#FFFFFF" stroke="#E4E4E7" stroke-width="2"/>
+            <path d="M51 39C44 33 44 23 53 22C49 14 57 7 67 12C69 5 81 5 84 15C93 13 98 22 92 31C96 36 91 44 84 42C79 34 65 32 51 39Z" fill="#E11D25"/>
+            <circle cx="67.5" cy="51.5" r="4" fill="#451A03"/>
+            <circle cx="79" cy="52.5" r="3.5" fill="#451A03"/>
+            <path d="M68 58C73 54 81 55 85 60C80 63 73 63 68 58Z" fill="#FACC15"/>
+            <path d="M67 63C63 68 63 77 69 78C73 79 75 74 75 74C75 74 77 79 81 78C86 77 86 68 82 63" fill="#E11D25"/>
+            <rect x="14" y="78" width="92" height="24" rx="10" fill="#E11D25"/>
+            <text x="60" y="94" text-anchor="middle" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-weight="900" font-style="italic" font-size="15">Morning</text>
+          </svg>
+        </div>
+        <div>
+          <p class="font-extrabold italic text-white text-base tracking-wide">Morning <span class="text-[#FF4D54]">NEWS</span></p>
+          <p class="text-zinc-400">Real-Time Telugu News &amp; Entertainment Reader Portal</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-4 text-zinc-400">
+        <button onclick="selectCategory('all')" class="hover:text-white transition cursor-pointer">Top Stories</button>
+        <span class="text-white/20">•</span>
+        <button onclick="selectCategory('tollywood')" class="hover:text-white transition cursor-pointer">Tollywood</button>
+        <span class="text-white/20">•</span>
+        <button onclick="selectCategory('politics')" class="hover:text-white transition cursor-pointer">Politics</button>
+        <span class="text-white/20">•</span>
+        <span>© 2026 Morning News Media</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== FULL ARTICLE READER MODAL ==================== -->
+  <div id="article-modal" class="fixed inset-0 z-50 hidden bg-zinc-950/75 backdrop-blur-xs overflow-y-auto p-3 sm:p-6">
+    <div class="min-h-full flex items-center justify-center">
+      <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden animate-slide-in">
+        <!-- Modal Header -->
+        <div class="px-5 py-3.5 bg-[#0B2239] text-white border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
+          <div id="modal-source-badge" class="flex items-center gap-2"></div>
+          <div class="flex items-center gap-2">
+            <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#E11D25] text-white text-[11px] font-extrabold">
+              <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+              <span>In-App Complete Reader</span>
+            </span>
+
+            <button id="modal-bookmark-btn" class="p-2 rounded-xl hover:bg-white/10 text-zinc-200 transition cursor-pointer" title="Bookmark story">
+              <i data-lucide="bookmark" class="w-4 h-4"></i>
+            </button>
+            <button id="modal-share-btn" class="p-2 rounded-xl hover:bg-white/10 text-zinc-200 transition cursor-pointer" title="Copy link">
+              <i data-lucide="share-2" class="w-4 h-4"></i>
+            </button>
+            <button onclick="closeArticleModal()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer" aria-label="Close modal">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div id="article-modal-body" class="p-5 sm:p-8 max-h-[84vh] overflow-y-auto">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div id="app-toast" class="fixed bottom-5 right-5 z-50 hidden bg-zinc-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-2xl shadow-xl border border-zinc-700 flex items-center gap-2.5">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+    <span id="app-toast-msg">Action completed</span>
+  </div>
+
+  <!-- ==================== APPLICATION JAVASCRIPT ==================== -->
+  <script>
+    // ---------------------------------------------------------
+    // 1. CATEGORIES, LIVE RSS FEEDS & 44 CHANNEL DIRECTORY
+    // ---------------------------------------------------------
+    const CATEGORIES = [
+      { slug: 'all', labelEn: 'Top Stories', labelTe: 'ముఖ్య వార్తలు', icon: 'flame' },
+      { slug: 'tollywood', labelEn: 'Tollywood', labelTe: 'టాలీవుడ్', icon: 'film' },
+      { slug: 'politics', labelEn: 'Politics', labelTe: 'రాజకీయాలు', icon: 'landmark' },
+      { slug: 'ap-ts', labelEn: 'AP & Telangana', labelTe: 'ఆంధ్ర & తెలంగాణ', icon: 'map-pin' },
+      { slug: 'ott-reviews', labelEn: 'OTT & Reviews', labelTe: 'ఓటీటీ & రివ్యూస్', icon: 'tv' },
+      { slug: 'sports', labelEn: 'Sports', labelTe: 'క్రీడలు', icon: 'trophy' },
+      { slug: 'viral', labelEn: 'Viral', labelTe: 'వైరల్', icon: 'zap' }
+    ];
+
+    const LIVE_RSS_FEEDS = [
+      { source: 'TV9 Telugu', rss: 'https://www.tv9telugu.com/feed', color: '#E11D48', category: 'ap-ts' },
+      { source: 'NTV Telugu', rss: 'https://ntvtelugu.com/feed', color: '#0284C7', category: 'politics' },
+      { source: 'V6 Velugu', rss: 'https://www.v6velugu.com/feed', color: '#15803D', category: 'ap-ts' },
+      { source: '10TV', rss: 'https://10tv.in/feed', color: '#2563EB', category: 'politics' },
+      { source: 'HMTV Live', rss: 'https://www.hmtvlive.com/feed', color: '#0369A1', category: 'ap-ts' },
+      { source: 'Namasthe Telangana', rss: 'https://www.ntnews.com/feed', color: '#DB2777', category: 'ap-ts' },
+      { source: 'ABP Desam', rss: 'https://telugu.abplive.com/feed', color: '#DC2626', category: 'ap-ts' },
+      { source: 'Telangana Today', rss: 'https://telanganatoday.com/feed', color: '#BE185D', category: 'ap-ts' },
+      { source: 'The Hans India', rss: 'https://www.thehansindia.com/feed', color: '#0369A1', category: 'ap-ts' },
+      { source: 'NewsMeter', rss: 'https://newsmeter.in/feed', color: '#059669', category: 'ap-ts' },
+      { source: 'BBC Telugu', rss: 'https://feeds.bbci.co.uk/telugu/rss.xml', color: '#991B1B', category: 'politics' },
+      { source: 'Samayam Telugu', rss: 'https://telugu.samayam.com/rssfeedstopstories.cms', color: '#E11D48', category: 'viral' },
+      { source: 'Telugu360', rss: 'https://www.telugu360.com/feed/', color: '#7C3AED', category: 'tollywood' },
+      { source: 'GreatAndhra', rss: 'https://www.greatandhra.com/rss.php', color: '#D97706', category: 'tollywood' },
+      { source: 'Gulte', rss: 'https://www.gulte.com/feed', color: '#059669', category: 'tollywood' },
+      { source: '123Telugu', rss: 'https://www.123telugu.com/feed', color: '#7C3AED', category: 'ott-reviews' },
+      { source: 'Filmy Focus', rss: 'https://filmyfocus.com/feed', color: '#9333EA', category: 'ott-reviews' },
+      { source: 'TeluguPost', rss: 'https://www.telugupost.com/feed', color: '#1D4ED8', category: 'ap-ts' },
+      { source: 'Aadhan', rss: 'https://aadhan.in/feed', color: '#DC2626', category: 'viral' }
+    ];
+
+    const CHANNELS = [
+      { name: 'Morning News', tag: 'Editorial Desk', color: '#D32F2F', latency: 'LIVE' },
+      { name: 'Eenadu', tag: 'AP & TS Daily', color: '#1D4ED8', latency: '1m' },
+      { name: 'Sakshi', tag: 'Telugu News', color: '#DC2626', latency: '1m' },
+      { name: 'TV9 Telugu', tag: '24x7 Breaking', color: '#E11D48', latency: '30s' },
+      { name: 'NTV Telugu', tag: 'Politics & State', color: '#0284C7', latency: '45s' },
+      { name: 'TV5 News', tag: 'Live Bulletins', color: '#EA580C', latency: '1m' },
+      { name: 'Andhra Jyothy', tag: 'Telugu Daily', color: '#B91C1C', latency: '2m' },
+      { name: 'V6 Velugu', tag: 'Telangana Focus', color: '#15803D', latency: '1m' },
+      { name: '10TV', tag: 'News & Analysis', color: '#2563EB', latency: '1m' },
+      { name: 'HMTV Live', tag: 'Hyderabad Desk', color: '#0369A1', latency: '2m' },
+      { name: 'Namasthe Telangana', tag: 'Telangana State', color: '#DB2777', latency: '2m' },
+      { name: 'ETV Bharat', tag: 'Regional Network', color: '#D97706', latency: '1m' },
+      { name: 'Zee News Telugu', tag: 'National & State', color: '#0F172A', latency: '2m' },
+      { name: 'News18', tag: 'Telugu & India', color: '#E11D25', latency: '1m' },
+      { name: 'ABP Desam', tag: 'Digital News', color: '#DC2626', latency: '1m' },
+      { name: 'Prabha News', tag: 'Telugu Portal', color: '#9333EA', latency: '3m' },
+      { name: 'Vaartha', tag: 'Daily News', color: '#1E40AF', latency: '3m' },
+      { name: 'Prajasakti', tag: 'State & Labor', color: '#B91C1C', latency: '3m' },
+      { name: 'Nava Telangana', tag: 'Telangana News', color: '#C2410C', latency: '3m' },
+      { name: 'Mana Telangana', tag: 'Regional Updates', color: '#0D9488', latency: '3m' },
+      { name: 'Suryaa', tag: 'Telugu Daily', color: '#EA580C', latency: '4m' },
+      { name: 'Visalaandhra', tag: 'AP State News', color: '#DC2626', latency: '4m' },
+      { name: 'Andhra Bhoomi', tag: 'Classic Daily', color: '#1D4ED8', latency: '4m' },
+      { name: 'Telangana Today', tag: 'English Daily', color: '#BE185D', latency: '1m' },
+      { name: 'The Hans India', tag: 'Hyderabad English', color: '#0369A1', latency: '2m' },
+      { name: 'NewsMeter', tag: 'Fact Check & News', color: '#059669', latency: '2m' },
+      { name: 'BBC Telugu', tag: 'World & India', color: '#991B1B', latency: '2m' },
+      { name: 'Samayam Telugu', tag: 'Times Telugu', color: '#E11D48', latency: '1m' },
+      { name: 'Oneindia Telugu', tag: 'Breaking & Viral', color: '#2563EB', latency: '2m' },
+      { name: 'Asianet News Telugu', tag: 'South Updates', color: '#1E3A8A', latency: '2m' },
+      { name: 'AP7AM', tag: 'Politics & Cinema', color: '#D97706', latency: '2m' },
+      { name: 'Telugu360', tag: 'Tollywood & Politics', color: '#7C3AED', latency: '1m' },
+      { name: 'GreatAndhra', tag: 'Cinema & Gossip', color: '#D97706', latency: '1m' },
+      { name: 'Tupaki', tag: 'Tollywood Buzz', color: '#E11D25', latency: '2m' },
+      { name: 'Gulte', tag: 'Movies & Political', color: '#059669', latency: '1m' },
+      { name: '123Telugu', tag: 'Reviews & Box Office', color: '#7C3AED', latency: '1m' },
+      { name: 'Webdunia Telugu', tag: 'Lifestyle & News', color: '#0284C7', latency: '3m' },
+      { name: 'TeluguOne', tag: 'Entertainment', color: '#EA580C', latency: '3m' },
+      { name: 'TeluguPost', tag: 'Hyderabad & AP', color: '#1D4ED8', latency: '2m' },
+      { name: 'Aadhan', tag: 'Trending & Short', color: '#DC2626', latency: '2m' },
+      { name: 'Filmibeat Telugu', tag: 'Cinema Updates', color: '#DB2777', latency: '2m' },
+      { name: 'Cinejosh', tag: 'Tollywood News', color: '#B91C1C', latency: '2m' },
+      { name: 'Filmy Focus', tag: 'OTT & Box Office', color: '#9333EA', latency: '1m' },
+      { name: 'Aadab Hyderabad', tag: 'City & Deccan', color: '#0F766E', latency: '3m' }
+    ];
+
+    const CATEGORY_IMAGES = {
+      tollywood: [
+        'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=900&q=80'
+      ],
+      politics: [
+        'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1555848962-6e79363ec58f?auto=format&fit=crop&w=900&q=80'
+      ],
+      'ap-ts': [
+        'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=900&q=80'
+      ],
+      'ott-reviews': [
+        'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=900&q=80'
+      ],
+      sports: [
+        'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=900&q=80'
+      ],
+      viral: [
+        'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=900&q=80'
+      ]
+    };
+
+    function getCategoryFallbackImage(category, seed = 0) {
+      const pool = CATEGORY_IMAGES[category] || CATEGORY_IMAGES.viral;
+      return pool[Math.abs(Number(seed) || 0) % pool.length];
+    }
+
+    function getCategoryMeta(slug) {
+      return CATEGORIES.find((c) => c.slug === slug) || { slug: 'all', labelEn: 'Top Stories', labelTe: 'ముఖ్య వార్తలు', icon: 'flame' };
+    }
+
+    function classifyClientCategory(text, fallbackSlug = 'ap-ts') {
+      const t = (text || '').toLowerCase();
+      if (/(ott|netflix|prime|aha|hotstar|review|రివ్యూ|ఓటీటీ)/i.test(t)) return 'ott-reviews';
+      if (/(movie|cinema|hero|trailer|teaser|box office|mahesh|prabhas|allu|ntr|chiranjeevi|సినిమా|ట్రైలర్)/i.test(t)) return 'tollywood';
+      if (/(cm |minister|assembly|parliament|election|congress|tdp|ysrcp|brs|bjp|రాజకీయ|ముఖ్యమంత్రి)/i.test(t)) return 'politics';
+      if (/(hyderabad|amaravati|visakhapatnam|telangana|andhra|హైదరాబాద్|అమరావతి|తెలంగాణ|ఆంధ్ర)/i.test(t)) return 'ap-ts';
+      if (/(cricket|ipl|kohli|rohit|sports|క్రికెట్|క్రీడలు)/i.test(t)) return 'sports';
+      if (/(viral|video|trending|వైరల్|వీడియో)/i.test(t)) return 'viral';
+      return fallbackSlug;
+    }
+
+    function extractParagraphsFromHtml(rawHtml) {
+      if (!rawHtml) return [];
+      try {
+        const doc = new DOMParser().parseFromString(rawHtml, 'text/html');
+        const pNodes = Array.from(doc.querySelectorAll('p'));
+        const paras = pNodes
+          .map((p) => (p.textContent || '').replace(/\s+/g, ' ').trim())
+          .filter((txt) => txt.length > 35 && !/read more|also read|subscribe|follow us/i.test(txt));
+        if (paras.length > 0) return paras;
+        const plain = (doc.body?.textContent || '').replace(/\s+/g, ' ').trim();
+        return plain ? [plain] : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function timeAgo(isoDateStr) {
+      const diffSec = Math.max(1, Math.floor((Date.now() - new Date(isoDateStr).getTime()) / 1000));
+      if (diffSec < 60) return 'Just now';
+      const mins = Math.floor(diffSec / 60);
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs}h ago`;
+      const days = Math.floor(hrs / 24);
+      return `${days}d ago`;
+    }
+
+    // ---------------------------------------------------------
+    // 2. LIVE-ONLY ARTICLES STORE (NO OLD STATIC DATA)
+    // ---------------------------------------------------------
+    const MAX_ARTICLE_AGE_MS = 48 * 60 * 60 * 1000; // Strict 48-hour (2 days) freshness window
+    let articles = [];
+
+    function isFreshArticle(isoDateStr) {
+      if (!isoDateStr) return true;
+      const ts = new Date(isoDateStr).getTime();
+      if (Number.isNaN(ts)) return true;
+      return Date.now() - ts <= MAX_ARTICLE_AGE_MS;
+    }
+
+    function pruneStaleArticles() {
+      articles = articles.filter((a) => isFreshArticle(a.publishedAt));
+      articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    }
+
+    let savedIds = [];
+    try {
+      savedIds = JSON.parse(localStorage.getItem('tt_bookmarks') || '[]');
+    } catch (e) {
+      savedIds = [];
+    }
+
+    const state = {
+      language: 'bilingual',
+      category: 'all',
+      source: 'ALL',
+      search: '',
+      onlyBookmarks: false,
+      bookmarks: new Set(savedIds),
+      autoPoll: true,
+      pollTimer: null,
+      feedCursor: 0,
+      unseenNewCount: 0,
+      lastNewSource: '',
+      activeArticleId: null,
+      modalViewMode: 'reader'
+    };
+
+    // ---------------------------------------------------------
+    // 8. LIVE RSS FEED INGESTION & AUTO-POLLING (FRESH <= 48 HRS ONLY)
+    // ---------------------------------------------------------
+    function extractImageFromHtml(rawHtml) {
+      if (!rawHtml) return null;
+      const match = rawHtml.match(/<img[^>]+(?:data-src|data-lazy-src|data-original|src)=["']([^"']+)["']/i);
+      if (match && match[1] && match[1].startsWith('http') && !/pixel|tracker|1x1|spacer|logo/i.test(match[1])) {
+        return match[1];
+      }
+      return null;
+    }
+
+    function parseXmlFeedString(xmlText) {
+      const xmlDoc = new DOMParser().parseFromString(xmlText, 'text/xml');
+      const items = Array.from(xmlDoc.querySelectorAll('item, entry')).slice(0, 8);
+      return items.map((node) => {
+        const title = (node.querySelector('title')?.textContent || '').replace(/<[^>]*>/g, '').trim();
+        const linkEl = node.querySelector('link');
+        const link = (linkEl?.getAttribute('href') || linkEl?.textContent || '').trim();
+        const pubDate = (
+          node.querySelector('pubDate')?.textContent ||
+          node.querySelector('published')?.textContent ||
+          node.querySelector('updated')?.textContent ||
+          ''
+        ).trim();
+        const encodedNode = node.getElementsByTagName('content:encoded')[0];
+        const rawHtml = (
+          encodedNode?.textContent ||
+          node.querySelector('description')?.textContent ||
+          node.querySelector('summary')?.textContent ||
+          ''
+        ).trim();
+        const enclosure = node.querySelector('enclosure')?.getAttribute('url');
+        const mediaContent = node.getElementsByTagName('media:content')[0]?.getAttribute('url');
+        const mediaThumb = node.getElementsByTagName('media:thumbnail')[0]?.getAttribute('url');
+        const thumb = [enclosure, mediaContent, mediaThumb].find((u) => u && u.startsWith('http')) || null;
+        return { title, link, pubDate, rawHtml, thumbnail: thumb };
+      });
+    }
+
+    async function enrichMissingArticleImages(newItems) {
+      const targets = newItems.filter((a) => !a.hasRealImage && a.url && a.url.startsWith('http')).slice(0, 10);
+      await Promise.allSettled(
+        targets.map(async (art) => {
+          try {
+            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(art.url)}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data || !data.contents) return;
+            const ogMatch =
+              data.contents.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+              data.contents.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
+              data.contents.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
+            if (ogMatch && ogMatch[1] && ogMatch[1].startsWith('http')) {
+              art.image = ogMatch[1];
+              art.hasRealImage = true;
+            }
+          } catch (e) {}
+        })
+      );
+      renderAll();
+    }
+
+    async function fetchSingleFeedItems(feed) {
+      // 1. Primary: rss2json (cache-busted with current timestamp)
+      try {
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.rss)}&_=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'ok' && Array.isArray(data.items) && data.items.length > 0) {
+            return data.items.slice(0, 8).map((item) => ({
+              title: (item.title || '').replace(/<[^>]*>/g, '').trim(),
+              link: (item.link || '').trim(),
+              pubDate: item.pubDate || '',
+              rawHtml: item.content || item.description || '',
+              thumbnail:
+                (item.thumbnail && item.thumbnail.startsWith('http') ? item.thumbnail : null) ||
+                (item.enclosure && item.enclosure.link && item.enclosure.link.startsWith('http') ? item.enclosure.link : null)
+            }));
+          }
+        }
+      } catch (e) {}
+
+      // 2. Fallback A: AllOrigins XML proxy
+      try {
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(feed.rss)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.contents) {
+            const parsed = parseXmlFeedString(data.contents);
+            if (parsed.length > 0) return parsed;
+          }
+        }
+      } catch (e) {}
+
+      // 3. Fallback B: CorsProxy.io raw XML proxy
+      try {
+        const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(feed.rss)}`);
+        if (res.ok) {
+          const xmlText = await res.text();
+          if (xmlText) {
+            const parsed = parseXmlFeedString(xmlText);
+            if (parsed.length > 0) return parsed;
+          }
+        }
+      } catch (e) {}
+
+      return [];
+    }
+
+    async function fetchLiveFeeds(manual = false) {
+      const icon = document.getElementById('sync-icon');
+      const statusText = document.getElementById('last-synced-text');
+      if (icon) icon.classList.add('animate-spin');
+      if (statusText) statusText.textContent = 'Pulling live current affairs (<48h)...';
+
+      // Purge any article older than 2 days (48 hours) immediately
+      pruneStaleArticles();
+
+      // Fetch ALL configured live RSS feeds on initial load, or rotating batches of 10 on background polls
+      const batch = articles.length === 0 ? [...LIVE_RSS_FEEDS] : [];
+      if (batch.length === 0) {
+        const batchSize = 10;
+        for (let i = 0; i < batchSize; i++) {
+          batch.push(LIVE_RSS_FEEDS[(state.feedCursor + i) % LIVE_RSS_FEEDS.length]);
+        }
+        state.feedCursor = (state.feedCursor + batchSize) % LIVE_RSS_FEEDS.length;
+      }
+
+      let newlyAdded = 0;
+      let latestSourceName = '';
+      const newlyCreatedArticles = [];
+
+      await Promise.allSettled(
+        batch.map(async (feed) => {
+          const items = await fetchSingleFeedItems(feed);
+          items.forEach((item, idx) => {
+            const link = item.link;
+            const title = item.title;
+            if (!link || !title) return;
+
+            const pubIso = item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString();
+            // Skip any story published more than 2 days ago
+            if (!isFreshArticle(pubIso)) return;
+
+            if (articles.some((a) => a.url === link || a.titleEn === title)) return;
+
+            const rssParagraphs = extractParagraphsFromHtml(item.rawHtml);
+            const cleanSummary = (rssParagraphs[0] || item.rawHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()).slice(0, 280);
+            const category = classifyClientCategory(`${title} ${cleanSummary}`, feed.category);
+            const extractedImg = item.thumbnail || extractImageFromHtml(item.rawHtml);
+
+            const newId = Date.now() + Math.floor(Math.random() * 100000) + idx;
+            const fallbackImg = getCategoryFallbackImage(category, newId);
+
+            const artObj = {
+              id: newId,
+              category,
+              source: feed.source,
+              sourceColor: feed.color,
+              isHero: false,
+              isBreaking: idx === 0,
+              isNew: true,
+              isLiveRss: true,
+              hasRealImage: Boolean(extractedImg),
+              publishedAt: pubIso,
+              titleEn: title,
+              titleTe: title,
+              summaryEn: cleanSummary || title,
+              summaryTe: cleanSummary || title,
+              fullParagraphs: rssParagraphs.length > 0 ? rssParagraphs : [cleanSummary || title],
+              image: extractedImg || fallbackImg,
+              fallbackImage: fallbackImg,
+              url: link,
+              readTime: '2 min read'
+            };
+
+            articles.unshift(artObj);
+            newlyCreatedArticles.push(artObj);
+            newlyAdded++;
+            latestSourceName = feed.source;
+          });
+        })
+      );
+
+      pruneStaleArticles();
+      if (articles.length > 100) {
+        articles = articles.slice(0, 100);
+      }
+
+      if (icon) icon.classList.remove('animate-spin');
+      if (statusText) {
+        const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        statusText.textContent = `Live • ${nowStr} (${articles.length} fresh stories)`;
+      }
+
+      if (newlyAdded > 0) {
+        state.unseenNewCount += newlyAdded;
+        state.lastNewSource = latestSourceName;
+        const toast = document.getElementById('new-stories-toast');
+        const toastText = document.getElementById('new-stories-toast-text');
+        if (toast && toastText) {
+          toastText.textContent = `${state.unseenNewCount} new ${state.unseenNewCount === 1 ? 'story' : 'stories'} from ${latestSourceName}`;
+          toast.classList.remove('hidden');
+        }
+        if (manual) showToast(`Fetched ${newlyAdded} fresh stories (< 48h)!`);
+        enrichMissingArticleImages(newlyCreatedArticles);
+      } else if (manual) {
+        showToast('Checked all feeds — showing latest stories under 2 days old');
+      }
+
+      renderAll();
+    }
+
+    function acknowledgeNewStories() {
+      state.unseenNewCount = 0;
+      const toast = document.getElementById('new-stories-toast');
+      if (toast) toast.classList.add('hidden');
+      renderAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function startAutoPoller() {
+      if (state.pollTimer) clearInterval(state.pollTimer);
+      state.pollTimer = setInterval(() => {
+        if (state.autoPoll) fetchLiveFeeds(false);
+      }, 45000);
+    }
+
+    function toggleAutoPoll(enabled) {
+      state.autoPoll = enabled;
+      showToast(enabled ? 'Auto-update feed enabled' : 'Auto-update feed paused');
+    }
+
+    // ---------------------------------------------------------
+    // 8B. NAVIGATION, FILTERS, BOOKMARKS, SHARE & READER MODAL
+    // ---------------------------------------------------------
+    function setLanguage(lang) {
+      state.language = lang;
+      ['bilingual', 'te', 'en'].forEach((code) => {
+        const btn = document.getElementById(`lang-${code}`);
+        if (!btn) return;
+        if (code === lang) {
+          btn.classList.add('bg-brand-red', 'text-white');
+          btn.classList.remove('text-zinc-300');
+        } else {
+          btn.classList.remove('bg-brand-red', 'text-white');
+          btn.classList.add('text-zinc-300');
+        }
+      });
+      renderAll();
+    }
+
+    function selectCategory(slug) {
+      state.category = slug;
+      state.onlyBookmarks = false;
+      updateBookmarksButtonUI();
+      renderAll();
+    }
+
+    function handleSourceFilter(sourceName) {
+      state.source = sourceName;
+      state.onlyBookmarks = false;
+      const selectEl = document.getElementById('source-filter');
+      if (selectEl) selectEl.value = sourceName;
+      updateBookmarksButtonUI();
+      renderAll();
+    }
+
+    function toggleBookmarksView() {
+      state.onlyBookmarks = !state.onlyBookmarks;
+      updateBookmarksButtonUI();
+      renderAll();
+    }
+
+    function updateBookmarksButtonUI() {
+      const btn = document.getElementById('bookmarks-btn');
+      if (!btn) return;
+      if (state.onlyBookmarks) {
+        btn.classList.add('ring-2', 'ring-[#E11D25]', 'bg-red-50');
+      } else {
+        btn.classList.remove('ring-2', 'ring-[#E11D25]', 'bg-red-50');
+      }
+    }
+
+    function updateBookmarkCount() {
+      const badge = document.getElementById('bookmark-count');
+      if (badge) badge.textContent = String(state.bookmarks.size);
+    }
+
+    function toggleBookmark(id, event) {
+      if (event) event.stopPropagation();
+      if (state.bookmarks.has(id)) {
+        state.bookmarks.delete(id);
+        showToast('Removed from Saved Stories');
+      } else {
+        state.bookmarks.add(id);
+        showToast('Saved story for offline reading');
+      }
+      try {
+        localStorage.setItem('tt_bookmarks', JSON.stringify(Array.from(state.bookmarks)));
+      } catch (e) {}
+      updateBookmarkCount();
+      renderAll();
+    }
+
+    function resetFilters() {
+      state.category = 'all';
+      state.source = 'ALL';
+      state.search = '';
+      state.onlyBookmarks = false;
+      const selectEl = document.getElementById('source-filter');
+      if (selectEl) selectEl.value = 'ALL';
+      updateBookmarksButtonUI();
+      renderAll();
+    }
+
+    function getFilteredArticles() {
+      return articles.filter((art) => {
+        if (state.onlyBookmarks && !state.bookmarks.has(art.id)) return false;
+        if (!state.onlyBookmarks && state.category !== 'all' && art.category !== state.category) return false;
+        if (state.source !== 'ALL' && art.source !== state.source) return false;
+        if (state.search.trim() !== '') {
+          const q = state.search.toLowerCase();
+          const hay = `${art.titleEn} ${art.titleTe} ${art.summaryEn} ${art.source}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function shareArticle(id, event) {
+      if (event) event.stopPropagation();
+      const baseUrl = window.location.href.split('?')[0];
+      const shareUrl = `${baseUrl}?story=${id}`;
+      const tempInput = document.createElement('input');
+      tempInput.value = shareUrl;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand('copy');
+        showToast('Morning News article link copied!');
+      } catch (e) {
+        showToast('Share link ready: ?story=' + id);
+      }
+      document.body.removeChild(tempInput);
+    }
+
+    async function fetchCompleteStoryText(article) {
+      if (!article || !article.url || !article.url.startsWith('http')) return null;
+      try {
+        const jinaUrl = `https://r.jina.ai/${article.url}`;
+        const res = await fetch(jinaUrl);
+        if (res.ok) {
+          const mdText = await res.text();
+          const lines = mdText
+            .split('\n')
+            .map((l) => l.replace(/^#+\s*/, '').trim())
+            .filter((l) => l.length > 55 && !/^(\[|\!\[|http|URL Source:|Title:|Published Time:|Markdown Content:)/i.test(l));
+          if (lines.length >= 2) {
+            return lines.slice(0, 18);
+          }
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    async function openArticleModal(id) {
+      const art = articles.find((a) => a.id === id);
+      if (!art) return;
+      state.activeArticleId = id;
+
+      const modal = document.getElementById('article-modal');
+      const badgeEl = document.getElementById('modal-source-badge');
+      const bodyEl = document.getElementById('article-modal-body');
+      const bmBtn = document.getElementById('modal-bookmark-btn');
+      const shareBtn = document.getElementById('modal-share-btn');
+
+      if (badgeEl) {
+        badgeEl.innerHTML = `
+          <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold text-white" style="background:${art.sourceColor}">${art.source}</span>
+          <span class="text-xs text-zinc-300 font-semibold">${getCategoryMeta(art.category).labelEn} • ${timeAgo(art.publishedAt)}</span>
+        `;
+      }
+      if (bmBtn) bmBtn.onclick = (e) => toggleBookmark(art.id, e);
+      if (shareBtn) shareBtn.onclick = (e) => shareArticle(art.id, e);
+
+      const title = state.language === 'te' ? art.titleTe : art.titleEn;
+      const initialParas = Array.isArray(art.fullParagraphs) && art.fullParagraphs.length > 0
+        ? art.fullParagraphs
+        : [art.summaryEn || title];
+
+      bodyEl.innerHTML = `
+        <div class="space-y-5">
+          <h1 class="text-xl sm:text-2xl font-black text-[#0B2239] leading-snug">${title}</h1>
+          <div class="rounded-2xl overflow-hidden bg-zinc-100 max-h-96">
+            <img
+              src="${art.image}"
+              alt="${art.titleEn}"
+              referrerpolicy="no-referrer"
+              onerror="this.onerror=null;this.src='${art.fallbackImage || getCategoryFallbackImage(art.category, art.id)}'"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div id="modal-article-paragraphs" class="space-y-4 text-sm sm:text-base text-zinc-700 leading-relaxed">
+            ${initialParas.map((p) => `<p>${p}</p>`).join('')}
+          </div>
+          <div id="modal-loading-full" class="flex items-center gap-2 text-xs text-zinc-500 pt-2">
+            <span class="w-2 h-2 rounded-full bg-[#E11D25] animate-ping"></span>
+            <span>Loading full story paragraphs inside Morning News...</span>
+          </div>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+      lucide.createIcons();
+
+      const fullParas = await fetchCompleteStoryText(art);
+      const loaderEl = document.getElementById('modal-loading-full');
+      const paraContainer = document.getElementById('modal-article-paragraphs');
+      if (loaderEl) loaderEl.remove();
+      if (fullParas && fullParas.length > 0 && paraContainer && state.activeArticleId === id) {
+        art.fullParagraphs = fullParas;
+        paraContainer.innerHTML = fullParas.map((p) => `<p>${p}</p>`).join('');
+      }
+    }
+
+    // ---------------------------------------------------------
+    // 8C. iOS PROGRESSIVE WEB APP (PWA) ICON & INSTALL MODAL
+    // ---------------------------------------------------------
+    function setupIosPwaAssets() {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 180;
+        canvas.height = 180;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#0B2239';
+          ctx.fillRect(0, 0, 180, 180);
+          ctx.fillStyle = '#E11D25';
+          ctx.beginPath();
+          ctx.roundRect(18, 18, 144, 144, 32);
+          ctx.fill();
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = 'italic 900 32px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Morning', 90, 88);
+          ctx.fillStyle = '#FACC15';
+          ctx.font = 'italic 900 22px sans-serif';
+          ctx.fillText('NEWS', 90, 118);
+
+          const iconUrl = canvas.toDataURL('image/png');
+          const appleLink = document.getElementById('apple-touch-icon-link');
+          if (appleLink) appleLink.href = iconUrl;
+
+          const manifest = {
+            name: 'Morning News Telugu',
+            short_name: 'Morning News',
+            start_url: '.',
+            display: 'standalone',
+            background_color: '#0B2239',
+            theme_color: '#0B2239',
+            icons: [{ src: iconUrl, sizes: '180x180', type: 'image/png' }]
+          };
+          const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+          const manifestLink = document.getElementById('pwa-manifest-link');
+          if (manifestLink) manifestLink.href = URL.createObjectURL(blob);
+        }
+      } catch (e) {}
+    }
+
+    function openIosInstallModal() {
+      const modal = document.getElementById('ios-install-modal');
+      const urlInput = document.getElementById('share-app-url');
+      if (urlInput) urlInput.value = window.location.href;
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeIosInstallModal() {
+      const modal = document.getElementById('ios-install-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function copyAppUrl() {
+      const urlInput = document.getElementById('share-app-url');
+      if (!urlInput) return;
+      urlInput.select();
+      try {
+        document.execCommand('copy');
+        showToast('App URL copied! Paste it in iPhone Safari.');
+      } catch (e) {}
+    }
+
+    // ---------------------------------------------------------
+    // 9. PORTAL GRID & SIDEBAR RENDERERS
+    // ---------------------------------------------------------
+    function renderCategoryTabs() {
+      const container = document.getElementById('category-tabs');
+      if (!container) return;
+      container.innerHTML = CATEGORIES.map((cat) => {
+        const active = !state.onlyBookmarks && state.category === cat.slug;
+        const label = state.language === 'te' ? cat.labelTe : cat.labelEn;
+        return `
+          <button
+            onclick="selectCategory('${cat.slug}')"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold whitespace-nowrap transition cursor-pointer ${
+              active
+                ? 'bg-[#E11D25] text-white shadow-xs'
+                : 'text-zinc-200 hover:text-white hover:bg-white/10'
+            }"
+          >
+            <i data-lucide="${cat.icon}" class="w-3.5 h-3.5"></i>
+            <span>${label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderHeroAndTopStories(filtered) {
+      const heroContainer = document.getElementById('hero-story-container');
+      const topStack = document.getElementById('top-stories-stack');
+      if (!heroContainer || !topStack) return;
+
+      if (filtered.length === 0) {
+        heroContainer.innerHTML = '';
+        topStack.innerHTML = '<p class="text-xs text-zinc-400 py-6 text-center">No top stories match your filter.</p>';
+        return;
+      }
+
+      const hero = filtered[0];
+      const heroTitle = state.language === 'te' ? hero.titleTe : hero.titleEn;
+      const heroSummary = state.language === 'te' ? hero.summaryTe : hero.summaryEn;
+
+      heroContainer.innerHTML = `
+        <article
+          onclick="openArticleModal(${hero.id})"
+          class="news-card bg-white border border-zinc-200/90 rounded-2xl overflow-hidden shadow-xs flex flex-col w-full cursor-pointer"
+        >
+          <div class="relative h-60 sm:h-72 bg-zinc-900 overflow-hidden">
+            <img
+              src="${hero.image}"
+              alt="${hero.titleEn}"
+              referrerpolicy="no-referrer"
+              onerror="this.onerror=null;this.src='${hero.fallbackImage || getCategoryFallbackImage(hero.category, hero.id)}'"
+              class="w-full h-full object-cover"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"></div>
+            <div class="absolute top-3 left-3 flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold text-white" style="background:${hero.sourceColor}">${hero.source}</span>
+              <span class="px-2 py-0.5 rounded bg-amber-400 text-[#0B2239] text-[10px] font-black uppercase">Lead Story</span>
+            </div>
+            <div class="absolute bottom-3 left-4 right-4 text-white">
+              <span class="text-[11px] text-zinc-300 font-semibold">${timeAgo(hero.publishedAt)} • ${hero.readTime}</span>
+              <h2 class="text-lg sm:text-xl font-extrabold leading-snug mt-1 line-clamp-2">${heroTitle}</h2>
+            </div>
+          </div>
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <p class="text-xs sm:text-sm text-zinc-600 line-clamp-2 leading-relaxed">${heroSummary}</p>
+            <div class="mt-3 pt-2.5 border-t border-zinc-100 flex items-center justify-between text-xs">
+              <span class="font-extrabold text-[#E11D25]">Read Full Story →</span>
+              <button onclick="toggleBookmark(${hero.id}, event)" class="text-zinc-500 hover:text-[#0B2239] font-bold cursor-pointer">
+                ${state.bookmarks.has(hero.id) ? 'Saved ★' : 'Save Story'}
+              </button>
+            </div>
+          </div>
+        </article>
+      `;
+
+      const stackItems = filtered.slice(1, 5);
+      topStack.innerHTML = stackItems.length > 0
+        ? stackItems.map((item) => `
+            <div onclick="openArticleModal(${item.id})" class="py-2.5 first:pt-0 last:pb-0 flex items-center gap-3 group cursor-pointer">
+              <img
+                src="${item.image}"
+                alt="${item.titleEn}"
+                referrerpolicy="no-referrer"
+                onerror="this.onerror=null;this.src='${item.fallbackImage || getCategoryFallbackImage(item.category, item.id)}'"
+                class="w-20 h-14 rounded-xl object-cover bg-zinc-100 shrink-0"
+              />
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 text-[10px] font-extrabold">
+                  <span style="color:${item.sourceColor}">${item.source}</span>
+                  <span class="text-zinc-300">•</span>
+                  <span class="text-zinc-400">${timeAgo(item.publishedAt)}</span>
+                </div>
+                <h4 class="text-xs sm:text-[13px] font-bold text-[#0B2239] group-hover:text-[#E11D25] line-clamp-2 mt-0.5 transition">
+                  ${state.language === 'te' ? item.titleTe : item.titleEn}
+                </h4>
+              </div>
+            </div>
+          `).join('')
+        : '<p class="text-xs text-zinc-400 py-4 text-center">More stories loading...</p>';
+    }
+
+    function renderNewsFeed(filtered) {
+      const grid = document.getElementById('news-feed-grid');
+      const emptyState = document.getElementById('empty-state');
+      const countBadge = document.getElementById('story-count-badge');
+      const heading = document.getElementById('feed-heading');
+      if (!grid || !emptyState) return;
+
+      if (countBadge) countBadge.textContent = String(filtered.length);
+      if (heading) {
+        heading.textContent = state.onlyBookmarks
+          ? 'Saved Stories'
+          : state.category === 'all'
+          ? 'Latest News Stream'
+          : `${getCategoryMeta(state.category).labelEn} News`;
+      }
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      grid.innerHTML = filtered.map((art) => {
+        const isBookmarked = state.bookmarks.has(art.id);
+        const title = state.language === 'te' ? art.titleTe : art.titleEn;
+        const summary = state.language === 'te' ? art.summaryTe : art.summaryEn;
+        return `
+          <article
+            onclick="openArticleModal(${art.id})"
+            class="news-card bg-white border border-zinc-200/90 rounded-2xl overflow-hidden shadow-2xs flex flex-col cursor-pointer ${art.isNew ? 'animate-slide-in' : ''}"
+          >
+            <div class="relative h-44 bg-zinc-100 overflow-hidden">
+              <img
+                src="${art.image}"
+                alt="${art.titleEn}"
+                referrerpolicy="no-referrer"
+                onerror="this.onerror=null;this.src='${art.fallbackImage || getCategoryFallbackImage(art.category, art.id)}'"
+                class="w-full h-full object-cover"
+              />
+              <span class="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md text-[10px] font-extrabold text-white shadow-2xs" style="background:${art.sourceColor}">
+                ${art.source}
+              </span>
+              ${art.isNew ? '<span class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-400 text-[#0B2239]">NEW</span>' : ''}
+            </div>
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center gap-2 text-[11px] text-zinc-400 font-semibold mb-1.5">
+                  <span class="text-[#E11D25] font-extrabold uppercase">${getCategoryMeta(art.category).labelEn}</span>
+                  <span>•</span>
+                  <span>${timeAgo(art.publishedAt)}</span>
+                </div>
+                <h4 class="text-sm sm:text-[15px] font-extrabold text-[#0B2239] line-clamp-2 leading-snug">${title}</h4>
+                <p class="text-xs text-zinc-600 line-clamp-2 mt-1.5 leading-relaxed">${summary}</p>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-zinc-100 flex items-center justify-between text-xs">
+                <span class="font-bold text-[#0B2239] hover:text-[#E11D25]">Open Reader →</span>
+                <div class="flex items-center gap-2">
+                  <button onclick="toggleBookmark(${art.id}, event)" class="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-500 cursor-pointer" title="Save">
+                    <i data-lucide="bookmark" class="w-3.5 h-3.5 ${isBookmarked ? 'fill-[#E11D25] text-[#E11D25]' : ''}"></i>
+                  </button>
+                  <button onclick="shareArticle(${art.id}, event)" class="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-500 cursor-pointer" title="Share">
+                    <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderCategoryShowcase() {
+      const container = document.getElementById('category-showcase-sections');
+      if (!container) return;
+      if (state.category !== 'all' || state.onlyBookmarks || state.search.trim() !== '') {
+        container.innerHTML = '';
+        return;
+      }
+
+      const showcaseSlugs = ['tollywood', 'politics', 'ap-ts'];
+      container.innerHTML = showcaseSlugs.map((slug) => {
+        const meta = getCategoryMeta(slug);
+        const items = articles.filter((a) => a.category === slug).slice(0, 2);
+        if (items.length === 0) return '';
+        return `
+          <div class="bg-white border border-zinc-200/90 rounded-2xl p-4 shadow-2xs">
+            <div class="flex items-center justify-between pb-2.5 mb-3 border-b-2 border-[#0B2239]">
+              <h4 class="text-sm font-black uppercase tracking-wide text-[#0B2239]">${meta.labelEn} • ${meta.labelTe}</h4>
+              <button onclick="selectCategory('${slug}')" class="text-xs font-extrabold text-[#E11D25] hover:underline cursor-pointer">View All →</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              ${items.map((art) => `
+                <div onclick="openArticleModal(${art.id})" class="flex items-start gap-3 p-2 rounded-xl hover:bg-zinc-50 transition cursor-pointer">
+                  <img
+                    src="${art.image}"
+                    alt="${art.titleEn}"
+                    referrerpolicy="no-referrer"
+                    onerror="this.onerror=null;this.src='${art.fallbackImage || getCategoryFallbackImage(art.category, art.id)}'"
+                    class="w-20 h-16 rounded-xl object-cover shrink-0 bg-zinc-100"
+                  />
+                  <div class="min-w-0">
+                    <span class="text-[10px] font-extrabold" style="color:${art.sourceColor}">${art.source}</span>
+                    <p class="text-xs font-bold text-[#0B2239] line-clamp-2 mt-0.5">${state.language === 'te' ? art.titleTe : art.titleEn}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderChannelSidebar(filterQuery = '') {
+      const list = document.getElementById('channel-list');
+      if (!list) return;
+      const q = filterQuery.toLowerCase().trim();
+      const visible = CHANNELS.filter((c) => !q || c.name.toLowerCase().includes(q) || c.tag.toLowerCase().includes(q));
+      list.innerHTML = visible.map((ch) => `
+        <button
+          onclick="handleSourceFilter('${ch.name}')"
+          class="w-full flex items-center justify-between px-3 py-2 rounded-xl border text-left transition cursor-pointer ${
+            state.source === ch.name
+              ? 'bg-[#0B2239] text-white border-[#0B2239]'
+              : 'bg-zinc-50/70 hover:bg-zinc-100 text-[#0B2239] border-zinc-200/70'
+          }"
+        >
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${ch.color}"></span>
+            <div class="truncate">
+              <p class="text-xs font-extrabold truncate">${ch.name}</p>
+              <p class="text-[10px] ${state.source === ch.name ? 'text-zinc-300' : 'text-zinc-500'} truncate">${ch.tag}</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded ${state.source === ch.name ? 'bg-white/15 text-amber-300' : 'bg-white text-zinc-500 border border-zinc-200'}">${ch.latency}</span>
+        </button>
+      `).join('');
+    }
+
+    function filterChannelSidebar(val) {
+      renderChannelSidebar(val);
+    }
+
+    function renderTrendingSidebar() {
+      const list = document.getElementById('trending-list');
+      if (!list) return;
+      const top5 = articles.slice(0, 5);
+      list.innerHTML = top5.map((art, idx) => `
+        <div onclick="openArticleModal(${art.id})" class="py-2.5 first:pt-0 last:pb-0 flex items-start gap-3 group cursor-pointer">
+          <span class="text-lg font-black italic text-zinc-300 group-hover:text-[#E11D25] w-5 shrink-0">0${idx + 1}</span>
+          <div class="min-w-0">
+            <span class="text-[10px] font-extrabold uppercase" style="color:${art.sourceColor}">${art.source}</span>
+            <p class="text-xs font-bold text-[#0B2239] group-hover:text-[#E11D25] line-clamp-2 mt-0.5 transition">
+              ${state.language === 'te' ? art.titleTe : art.titleEn}
+            </p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAll() {
+      const filtered = getFilteredArticles();
+      renderBreakingTicker();
+      renderCategoryTabs();
+      renderHeroAndTopStories(filtered);
+      renderNewsFeed(filtered);
+      renderCategoryShowcase();
+      renderChannelSidebar();
+      renderTrendingSidebar();
+      lucide.createIcons();
+    }
+
+    function renderBreakingTicker() {
+      const track = document.getElementById('breaking-ticker-track');
+      if (!track) return;
+      const topHeadlines = articles.slice(0, 8);
+      if (topHeadlines.length === 0) return;
+      const itemsHtml = topHeadlines
+        .map(
+          (a) =>
+            `<button onclick="openArticleModal(${a.id})" class="hover:underline text-left cursor-pointer">[${a.source}] ${
+              state.language === 'te' ? a.titleTe : a.titleEn
+            }</button>`
+        )
+        .join('<span class="text-amber-300">•</span>');
+      track.innerHTML = `${itemsHtml}<span class="text-amber-300">•</span>${itemsHtml}`;
+    }
+
+    function closeArticleModal() {
+      document.getElementById('article-modal').classList.add('hidden');
+    }
+
+    // ---------------------------------------------------------
+    // 10. TOAST HELPER & KEYBOARD ESCAPE
+    // ---------------------------------------------------------
+    function showToast(message) {
+      const toast = document.getElementById('app-toast');
+      const msgEl = document.getElementById('app-toast-msg');
+      if (!toast || !msgEl) return;
+      msgEl.textContent = message;
+      toast.classList.remove('hidden');
+      clearTimeout(window.__toastTimeout);
+      window.__toastTimeout = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3200);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeArticleModal();
+        closeIosInstallModal();
+      }
+    });
+
+    // ---------------------------------------------------------
+    // 10B. SCROLL-AWARE MERGED LOGO IN TOP STORIES BAR
+    // ---------------------------------------------------------
+    function handleStickyHeaderScroll() {
+      const mergedLogo = document.getElementById('sticky-merged-logo');
+      const stickyRefresh = document.getElementById('sticky-refresh-btn');
+      if (!mergedLogo) return;
+
+      const isScrolled = window.scrollY > 95;
+      if (isScrolled) {
+        mergedLogo.classList.remove('max-w-0', 'opacity-0', '-translate-x-2', 'pointer-events-none');
+        mergedLogo.classList.add('max-w-[190px]', 'opacity-100', 'translate-x-0', 'pointer-events-auto');
+        if (stickyRefresh) {
+          stickyRefresh.classList.remove('opacity-0', 'pointer-events-none');
+          stickyRefresh.classList.add('opacity-100', 'pointer-events-auto');
+        }
+      } else {
+        mergedLogo.classList.add('max-w-0', 'opacity-0', '-translate-x-2', 'pointer-events-none');
+        mergedLogo.classList.remove('max-w-[190px]', 'opacity-100', 'translate-x-0', 'pointer-events-auto');
+        if (stickyRefresh) {
+          stickyRefresh.classList.add('opacity-0', 'pointer-events-none');
+          stickyRefresh.classList.remove('opacity-100', 'pointer-events-auto');
+        }
+      }
+    }
+
+    window.addEventListener('scroll', handleStickyHeaderScroll, { passive: true });
+
+    // ---------------------------------------------------------
+    // 11. BOOTSTRAP APPLICATION ON LOAD
+    // ---------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      const liveDateEl = document.getElementById('live-date');
+      if (liveDateEl) {
+        liveDateEl.textContent = `${new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        })} • Hyderabad, IN`;
+      }
+
+      setupIosPwaAssets();
+      updateBookmarkCount();
+      renderAll();
+
+      // Open shared ?story=<id> link automatically if present
+      const params = new URLSearchParams(window.location.search);
+      const sharedId = Number(params.get('story'));
+      if (sharedId && articles.some((a) => a.id === sharedId)) {
+        openArticleModal(sharedId);
+      }
+
+      // Immediately sync live feeds from Telugu channels & start background auto-poller
+      fetchLiveFeeds(false);
+      startAutoPoller();
+    });
+  </script>
+</body>
+</html>
